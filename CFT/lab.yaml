@@ -1,0 +1,422 @@
+AWSTemplateFormatVersion: 2010-09-09
+# This CloudFormation template deploys a basic F5 Demo Environment in a VPC 
+# It is not production ready and is intended for test use only
+# No warraty explicit or implied is granted
+#
+# Parameters 
+#
+Parameters:
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    #AllowedPattern: [a-zA-Z0-9-_~!@#$%^&*()\\+]+$
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  BigIpAdminPW:
+    Description: Admin password for the BIG-IP
+    Type: String
+    Default: cowpigdog
+  S3Bucket:
+    Description: location of the templates and private keys for internal auth
+    Type: String
+  DemoPrivateKey:
+    Description: The private key to enable auth within this demo DO NOT USE A PRODUCTION KEY
+    Type: String
+    Default: id_rsa.pem
+  DemoPublicKey: 
+    Description: The public key to enable auth within this demo DO NOT USE A PRODUCTION KEY
+    Default: key.pub
+    Type: String
+  AppServerAMI:   
+    Default: ami-057a852b5ed4b66bc
+    Type: String
+    Description: Ubuntu 18.04 LTS US-West-1
+  AppServerEBSVolumeSize:
+    Default: 20
+    Description: Appserver disk size  
+    Type: String
+  AppServerInstanceType:
+    Default: t2.micro
+    Type: String
+    Description: Instance Type 
+  SrcIp: 
+    Default: 0.0.0.0/0
+    Type: String
+    Description: Source IP for SSH
+  PubScrIP: 
+    Default: 0.0.0.0/0
+    Type: String
+    Description: Source IP for App access
+  Region:
+     Default: us-west-1 
+     Type: String
+     Description: AWS region   
+Mappings:      
+  RegionMap: 
+   us-west-1:
+      AppServer:  ami-068670db424b01e9a
+      UtilServer: ami-068670db424b01e9a
+   eu-west-1: 
+      AppServer:   ami-01e6a0b85de033c99
+      UtilServer:  ami-01e6a0b85de033c99 
+   ap-northeast-1: 
+      AppServer:   ami-09b68f5653871885f
+      UtilServer:  ami-09b68f5653871885f
+    
+#    
+# Plumbing
+#
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.1.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value:  !Join ['', [!Ref "AWS::StackName", "-VPC" ]]
+  # Private DNS Zone
+  # DNS: 
+  #   Type: AWS::Route53::HostedZone
+  #   Properties:
+  #     Name: "example.com"
+  #     VPCs: 
+  #       - VPCId: !Ref VPC
+  #         VPCRegion: !Ref "AWS::Region"
+
+  # Our VPC will need internet access:     
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    DependsOn: VPC
+    Properties:
+      Tags:
+      - Key: Name
+        Value:  !Join ['', [!Ref "AWS::StackName", "-IGW" ]]
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.1.10.0/24
+      AvailabilityZone: !Select [ 0, !GetAZs ]    # Get the first AZ in the list       
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-Public-SN
+  # Route table for subnet:
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-Public-RT
+  PublicRoute1:   # Public route table has direct routing to IGW:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway  
+ # Elastic IP's 
+  AsElasticIPAddress:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: VPC
+  UsElasticIPAddress:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: VPC
+  # Associate A the public Subnet with the Route Table 
+  PublicSubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable 
+
+  # App Server
+  AppServer1: 
+    Type: AWS::EC2::Instance
+    Properties:
+      SecurityGroupIds:  
+      - !Ref WsSecurityGroup  
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AppServer]
+      BlockDeviceMappings: 
+        - DeviceName: "/dev/sda1"
+          Ebs:
+            VolumeSize: !Ref AppServerEBSVolumeSize
+      InstanceType: !Ref  AppServerInstanceType
+      KeyName: !Ref KeyName
+      SubnetId: !Ref PublicSubnet
+      PrivateIpAddress: 10.1.10.100
+      Tags:
+        - Key: Name
+          Value: AppServer1
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash -xe
+            set -o errexit; set -o nounset; set -o pipefail
+            # set the hostname 
+            sudo hostname app1
+            echo app1 > /etc/hostname
+            # set up hosts file 
+            echo  10.1.10.50 bigip >> /etc/hosts 
+            echo  10.1.10.10 utilserver >> /etc/hosts
+            # Do some nasty hack auth stuff
+            echo "Insatlling the public key from ${S3Bucket}"
+            curl ${S3Bucket}/${DemoPublicKey} >> /home/ubuntu/.ssh/authorized_keys
+            # Install Python and AWS cfn-bootstrap utilities
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get -y install python-pip
+            pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+            /usr/local/bin/cfn-init -v --stack ${AWS::StackName} --resource AppServer1  --region ${AWS::Region}
+            
+            
+            
+
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+            docker
+        docker:
+          commands:
+            'a_get_certificates':
+              command: 'sudo apt-get install -y apt-transport-https ca-certificates'
+            'b_set_gpg_key':
+              command: 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -'
+            'c_add_docker_repo':
+              command:  'sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" '
+            'd_update_aptget':
+              command: 'sudo apt-get update'
+            'e_install_docker':
+              command: 'sudo apt-get install -y docker-ce docker-ce-cli containerd.io'
+            'f_create_service':
+              command: 'sudo service docker start'
+            'g_add_ubuntu_user_to_docker_group':
+              command: 'sudo usermod -aG docker ubuntu'
+            'h_verify_installation':
+              command: 'sudo docker run hello-world'
+            'i_run_backend':
+              command: 'docker run -dit -p 80:8080 -p 443:8443 f5devcentral/f5-hello-world'   
+            'j_juiceshop':
+              command: 'docker pull bkimminich/juice-shop'
+            'k_juiceshop_run':
+              command: 'docker run  -dit -p 3000:3000 bkimminich/juice-shop'  
+            'l_blue':
+              command: 'docker pull runciblespoon/demo-blue'
+            'm_blue_run':
+              command: 'docker run --name blue_server -dit -p 9081:80 runciblespoon/demo-blue' 
+            'n_green':
+              command: 'docker pull runciblespoon/demo-green'
+            'o_green_run':
+              command: 'docker run --name green_server -dit -p 9080:80 runciblespoon/demo-green'  
+                
+    # Util Server for docker etc
+  UtilServer: 
+    Type: AWS::EC2::Instance
+
+
+    Properties:
+      SecurityGroupIds:  
+      - !Ref UsSecurityGroup 
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", UtilServer]
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sda1"
+          Ebs:
+            VolumeSize: !Ref AppServerEBSVolumeSize
+      InstanceType: !Ref  AppServerInstanceType
+      KeyName: !Ref KeyName
+      SubnetId: !Ref PublicSubnet
+      PrivateIpAddress: 10.1.10.10
+      Tags:
+        - Key: Name
+          Value: UtilServer
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash -xe
+            set -o errexit; set -o nounset; set -o pipefail
+            # set the hostname 
+            sudo hostname util
+            echo util > /etc/hostname
+            # set up hosts file
+            echo  10.1.10.50 bigip bigip.example.com >> /etc/hosts 
+            echo  10.1.10.100 appserver appserver.example.com >> /etc/hosts
+            echo  export BIGPASS=${BigIpAdminPW} >> /home/ubuntu/.profile
+            # set the path for locust 
+            echo export PATH=$PATH:~/.local/bin >> /home/ubuntu/.bashrc
+            # Do some nasty hack auth stuff to allow internal auth
+            curl ${S3Bucket}/${DemoPrivateKey} >> /home/ubuntu/.ssh/id_rsa
+            chown ubuntu:ubuntu /home/ubuntu/.ssh/id_rsa
+            chmod 600 /home/ubuntu/.ssh/id_rsa
+            # Install Python and AWS cfn-bootstrap utilities
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get -y install python-pip
+            pip install requests
+            pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+            /usr/local/bin/cfn-init -v --stack ${AWS::StackName} --resource UtilServer  --region ${AWS::Region}
+            
+            
+          
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+            docker
+        docker:
+          commands:
+            'a_get_certificates':
+              command: 'sudo apt-get install -y apt-transport-https ca-certificates'
+            'b_set_gpg_key':
+              command: 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -'
+            'c_add_docker_repo':
+              command:  'sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" '
+            'd_update_aptget':
+              command: 'sudo apt-get update'
+            'e_install_docker':
+              command: 'sudo apt-get install -y docker-ce docker-ce-cli containerd.io'
+            'f_create_service':
+              command: 'sudo service docker start'
+            'g_add_ubuntu_user_to_docker_group':
+              command: 'sudo usermod -aG docker ubuntu'
+            'h_verify_installation':
+              command: 'sudo docker run hello-world'
+            'i_run_Super-NetOps':
+              command: 'sudo docker run -d -p 8080:80 -p 2222:22 -it f5devcentral/f5-super-netops-container:base'    
+             # to acccess SSH:  ssh -p 2222 snops@localhost  
+            'j_clone_utils ':
+              command: 'git clone https://github.com/RuncibleSpoon/F5AppSvcDemo /home/ubuntu/F5AppSvcDemo'
+            'k_fix_permissions':
+              command: 'chown -R ubuntu:ubuntu /home/ubuntu/*'   
+      
+  # UsDNSRecord:
+  #   Type: AWS::Route53::RecordSet
+  #   Properties:
+  #     HostedZoneName: example.com.
+  #     Name: util.example.com.
+  #     Type: A
+  #     TTL: '900'
+  #     ResourceRecords:
+  #       - !GetAtt UtilServer.PrivateIp     
+  
+  # AppDNSRecord:
+  #   Type: AWS::Route53::RecordSet
+  #   Properties:
+  #     HostedZoneName: example.com.
+  #     Name: app1.example.com.
+  #     Type: A
+  #     TTL: '900'
+  #     ResourceRecords:
+  #       - !GetAtt AppServer1.PrivateIp    
+
+      
+
+  # Associate the Util and Web  EIP
+
+
+  AsVpcIPAssoc:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      InstanceId: !Ref AppServer1
+      AllocationId: !GetAtt AsElasticIPAddress.AllocationId
+
+  UsVpcIPAssoc:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      InstanceId: !Ref UtilServer
+      AllocationId: !GetAtt UsElasticIPAddress.AllocationId
+
+  
+
+  # Util Server Secuirty Group
+  UsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: UsSecurityGroup
+      GroupDescription: allow connections from specified CIDR ranges
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: !Ref SrcIp
+      - IpProtocol: tcp
+        FromPort: 8089
+        ToPort: 8089
+        CidrIp: !Ref SrcIp
+      VpcId: !Ref VPC  
+
+   # Web  Server Secuirty Group
+  WsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: WsSecurityGroup
+      GroupDescription: allow all connections from VPC 
+      SecurityGroupIngress:
+      - IpProtocol: -1
+        CidrIp: 0.0.0.0/0
+      VpcId: !Ref VPC  
+
+
+   # Lets launch a stack from within this stack.
+   # We will use PAYG Best with a single NIC
+
+  BIGIPStack:
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TimeoutInMinutes: '20'
+      Parameters: 
+        Vpc: !Ref VPC
+        subnet1Az1: !Ref PublicSubnet
+        subnet1Az1Address: 10.1.10.50,10.1.10.51
+        imageName: Best25Mbps
+        instanceType: m5.large
+        timezone: UTC
+        sshKey: !Ref  KeyName
+        ntpServer: 0.pool.ntp.org
+        managementGuiPort: 8443
+        restrictedSrcAddress: !Ref SrcIp
+        restrictedSrcAddressApp: !Ref PubScrIP
+        S3Bucket: !Ref  S3Bucket
+        DemoPublicKey: !Ref DemoPublicKey
+        AdminPW: !Ref BigIpAdminPW
+        
+      Tags: 
+        - Key: Name
+          Value: BIG-IP
+      
+      TemplateURL: !Join
+                      - ''
+                      - - !Ref S3Bucket
+                        - '/big-ip.yaml'
+    
+
+Outputs:
+   UtilServerIP:
+    Description: Public IP address of the Utility Server - use for SSH into demo environement
+    Value: !Ref UsElasticIPAddress
+   AppServerIP:
+    Description: Public IP address of the App Server - use for debug
+    Value: !Ref AsElasticIPAddress
+   BIGIPIP: 
+    Description: Public IP address of the BIG-IP - use for SSH 
+    Value: !GetAtt BIGIPStack.Outputs.Bigip1subnet1Az1SelfEipAddress
+   BIGIPUrl:
+    Description: URL of the management interface
+    Value: !GetAtt BIGIPStack.Outputs.Bigip1Url
+
+
+
+
+
+
+
+  

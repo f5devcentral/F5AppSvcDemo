@@ -1,0 +1,57 @@
+{
+     "class": "AS3",
+     "action": "deploy",
+     "persist": true,
+     "declaration": {
+         "class": "ADC",
+         "schemaVersion": "3.0.0",
+         "id": "urn:uuid:33045210-3ab8-4636-9b2a-c98d22ab915d",
+         "label": "Sample 1",
+         "remark": "Simple HTTP Service with Round-Robin Load Balancing",
+         "Sample_01": {
+             "class": "Tenant",
+             "A1": {
+                 "class": "Application",
+                 "template": "http",
+                 "serviceMain": {
+                     "class": "Service_HTTP",
+                     "iRules": ["external_green_only"],
+                     "virtualAddresses": [
+                         "10.1.10.50"
+                     ],
+                     "pool": "web_pool" },
+                 "web_pool": {
+                     "class": "Pool",
+		     "loadBalancingMode":"ratio-member",
+                     "monitors": [
+                         "http"
+                     ],
+                     "members": [
+                         {
+                             "servicePort": 9080,
+			     "ratio": 90,
+                             "serverAddresses": [
+                                 "10.1.10.100"
+                                               ]
+                         },
+                         {
+                             "servicePort": 9081,
+			     "ratio": 10,
+                             "serverAddresses": [
+                                 "10.1.10.100"
+                                               ]
+                         }
+			 
+                     ]
+                 },
+
+                 "external_green_only": {
+                    "class": "iRule",
+                    "iRule": {
+                    "url": "https://raw.githubusercontent.com/RuncibleSpoon/F5AppSvcDemo/master/scenarios/BlueGreen/irule.tcl"
+                    }  
+                }
+             }
+         }
+     }
+ }
