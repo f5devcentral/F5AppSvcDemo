@@ -290,7 +290,7 @@ Resources:
               command: 'sudo docker run -d -p 8080:80 -p 2222:22 -it f5devcentral/f5-super-netops-container:base'    
              # to acccess SSH:  ssh -p 2222 snops@localhost  
             'j_clone_utils ':
-              command: 'git clone https://github.com/RuncibleSpoon/F5AppSvcDemo /home/ubuntu/F5AppSvcDemo'
+              command: 'git clone https://github.com/f5devcentral/F5AppSvcDemo /home/ubuntu/F5AppSvcDemo'
             'k_fix_permissions':
               command: 'chown -R ubuntu:ubuntu /home/ubuntu/*'   
       
