@@ -42,7 +42,7 @@ Parameters:
     Default: 0.0.0.0/0
     Type: String
     Description: Source IP for SSH
-  PubScrIP: 
+  PubSrcIp: 
     Default: 0.0.0.0/0
     Type: String
     Description: Source IP for App access
@@ -384,7 +384,7 @@ Resources:
         ntpServer: 0.pool.ntp.org
         managementGuiPort: 8443
         restrictedSrcAddress: !Ref SrcIp
-        restrictedSrcAddressApp: !Ref PubScrIP
+        restrictedSrcAddressApp: !Ref PubSrcIp
         S3Bucket: !Ref  S3Bucket
         DemoPublicKey: !Ref DemoPublicKey
         AdminPW: !Ref BigIpAdminPW
