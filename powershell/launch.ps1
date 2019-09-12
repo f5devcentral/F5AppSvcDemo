@@ -6,7 +6,7 @@ $p1.ParameterValue = "AAAWS"
 # Your S3 Bucket - needs the full https://xxxx url
 $p2 = new-object Amazon.CloudFormation.Model.Parameter
 $p2.ParameterKey = "S3Bucket"
-$p2.ParameterValue = "https://s3-us-west-1.amazonaws.com/as3bkt"
+$p2.ParameterValue = $env:DemoBkt
 # Source IP address range x.x.x.x/x for SSH access
 $p3 = new-object Amazon.CloudFormation.Model.Parameter
 $p3.ParameterKey = "SrcIp"
