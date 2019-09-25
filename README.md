@@ -3,7 +3,7 @@
 
 ## Introduction
 
-This is a beta version of a new cloud-based demo environment that will set up a VPC within AWS (more clouds to follow) containing an Ubuntu Linux client instance (the Utility Server), an F5 BIG-IP, and Ubuntu Linux server EC2 instance. 
+This is a beta version of a new cloud-based demo environment that will set up a VPC within AWS (more clouds to follow) containing an Ubuntu Linux client instance (the Utility Server), an F5 BIG-IP, and an Ubuntu Linux server EC2 instance. 
 
 ![alt text](https://github.com/RuncibleSpoon/F5AppSvcDemo/raw/master/images/lab.png "lab layout" )
 
