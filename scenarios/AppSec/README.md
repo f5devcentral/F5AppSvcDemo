@@ -14,13 +14,13 @@ First, run the [AS3](http://clouddocs.f5.com/products/extensions/f5-appsvcs-exte
 
 Now navigate to the juiceshop app
 
-http://<ipaddress of your BIG-IP install>/
+http://ipaddress of your BIG-IP install
 
 ![alt text](https://github.com/RuncibleSpoon/F5AppSvcDemo/raw/master/images/juiceshop1.JPG "Juiceshop App")
 
 We're going to try a simple SQL injection attack on the auth system - this is described by IncognitJoe in an [excellent document](https://incognitjoe.github.io/hacking-the-juice-shop.html) that can run you through a lot of the Juiceshop attacks.
 
-Click the login link and use the email address of "'or 1==1" --  This is classic SQLi stuff
+Click the login link and use the email address of "'or 1==1 -- "  This is classic SQLi stuff
 
 ![alt text](https://github.com/RuncibleSpoon/F5AppSvcDemo/raw/master/images/juiceshop2.PNG  "Juiceshop App")
 
