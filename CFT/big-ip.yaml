@@ -897,7 +897,7 @@ Resources:
                       /config/cloud/aws/node_modules/@f5devcentral/f5-cloud-libs/scripts/onboard.js
                     - >-
                       --install-ilx-package
-                      file:///config/cloud/f5-appsvcs-3.13.1-1.noarch.rpm
+                      file:///config/cloud/f5-appsvcs-3.13.2-1.noarch.rpm
                     - '--port 8443'
                     - '--ssl-port '
                     - !Ref managementGuiPort
@@ -1239,12 +1239,12 @@ Resources:
               owner: root
               source: >-
                 http://cdn.f5.com/product/cloudsolutions/f5-appsvcs-extension/v3.6.0/dist/lts/f5-appsvcs-3.5.1-5.noarch.rpm
-            /config/cloud/f5-appsvcs-3.13.1-1.noarch.rpm:
+            /config/cloud/f5-appsvcs-3.13.2-1.noarch.rpm:
               group: root
               mode: '000755'
               owner: root
               source: >-
-                https://github.com/F5Networks/f5-appsvcs-extension/raw/master/dist/lts/3.13.1/f5-appsvcs-3.13.1-1.noarch.rpm
+                https://github.com/F5Networks/f5-appsvcs-extension/releases/download/v3.13.2/f5-appsvcs-3.13.2-1.noarch.rpm
             /config/cloud/f5-cloud-libs-aws.tar.gz:
               group: root
               mode: '000755'
