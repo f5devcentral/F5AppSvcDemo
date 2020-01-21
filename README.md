@@ -72,7 +72,9 @@ These deployments default to open access, so tying them down with a network rang
 
 1) Create an S3 bucket - and give it public access attributes 
 2) Upload the templates from the CFT (short for Cloud Formation Template) directory into the bucket
-3) Create a disposable SSH key pair such as [ssh-keygen](https://www.ssh.com/ssh/keygen) and save the private key my-key-pair, and the public key as my-key-pair.pub (this is very bad practice for a production system, but OK for this demo). Upload the keys into the S3 bucket. See below for a code sample.
+3) Create a disposable SSH key pair such as [ssh-keygen](https://www.ssh.com/ssh/keygen) and save the private key my-key-pair, and the public key as my-key-pair.pub (this is very bad practice for a production system, but OK for this demo). Upload the keys into the S3 bucket. As a code sample:
+    `ssh-keygen -P "" -t rsa -b 4096 -m pem -f my-key-pair`
+
 4) Launch the Lab - There are two methods to launch this lab:
    - Windows PowerShell for AWS - refer to the PowerShell directory for these scripts, paying careful attention to the required input parameters. 
    - CloudFormation Template - it's just as easy to logon to the AWS Management Console, navigate to the CloudFormation section and create your own stack from the single lab.yaml file. It will also the require parameters discussed above. 
@@ -81,8 +83,7 @@ These deployments default to open access, so tying them down with a network rang
 7) After waiting 10 mins post instance start, SSH to the Util server and complete a couple of post setup tasks. See below for details.
 8) Explore the labs. See below for details.
 
-  .. code::
-     ssh-keygen -P "" -t rsa -b 4096 -m pem -f my-key-pair
+ 
 
 
 Template outputs 
