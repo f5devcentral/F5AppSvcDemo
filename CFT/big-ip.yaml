@@ -827,7 +827,7 @@ Resources:
             010-install-libs:
               command: !Join 
                 - ' '
-                - - mkdir -p /var/log/cloud/aws;
+                - - mkdir -p /var/log/cloud/aws
                   - nohup /config/installCloudLibs.sh
                   - '&>> /var/log/cloud/aws/install.log < /dev/null &'
             020-generate-password:
