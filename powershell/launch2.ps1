@@ -1,4 +1,4 @@
-# Script to Launch the CFT with paramters etc 
+# Script to Launch the CFT with parameters etc 
 # First parameter
 $p1 = new-object Amazon.CloudFormation.Model.Parameter
 $p1.ParameterKey = "KeyName"

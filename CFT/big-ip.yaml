@@ -718,7 +718,7 @@ Parameters:
       - PerAppVeLtm25Mbps
       - PerAppVeLtm200Mbps
     ConstraintDescription: Must be a valid F5 BIG-IP VE image type
-    Default: Best1000Mbps
+    Default: Best25Mbps
     Description: F5 BIG-IP Performance Type
     Type: String
   instanceType:
@@ -753,7 +753,7 @@ Parameters:
       - c5n.2xlarge
       - c5n.4xlarge
     ConstraintDescription: Must be a valid EC2 instance type for BIG-IP
-    Default: m5.xlarge
+    Default: m5.large
     Description: Size of the F5 BIG-IP Virtual Instance
     Type: String
   managementGuiPort:

@@ -22,17 +22,17 @@ This repository is cloned onto the client as part of the Cloudformation deployme
 You will need: 
 
 1) An AWS account and the knowledge to operate it 
-2) An AWS S3 bucket to put the AWS 
-3) Ideally API access to AWS - this lab is primarily designed to be started from the CLI
-4) Patience - this is an early beta with more work to do!
-5) To have subscribed to the F5 BIG-IP used in this lab
+2) An AWS S3 bucket to put the templates and files 
+3) To have subscribed in the AWS Marketplace to the F5 BIG-IP instance used in this lab
+4) A pre-generated public and private key pair for server to server communication
+5) An EC2 key for SSH
 
 
 ## Some important notes 
 
 There are a couple of important things to know:
 
-1) ***This lab is not built to best practices for production security***. In particular you are asked to supply a key pair for use in the demo - this should be disposable (you will still need to specify a standard AWS key pair for remote access )
+1) ***This lab is not built to best practices for production security***. In particular you are asked to supply a key pair for use in the demo - this should be disposable (you will still need to specify a standard EC2 AWS key pair for remote access )
 
 2) This lab is only  available in us-west-1, eu-west-1, and ap-northeast-1 in this version.
 
@@ -47,6 +47,7 @@ Each sample test will come with instructions and explanations
 1. Log in to the AWS Marketplace at [https://aws.amazon.com/marketplace](https://aws.amazon.com/marketplace).
 2. Navigate to the  [BIG-IP Virtual Edition BEST (PAYG, 25Mbps)](https://aws.amazon.com/marketplace/pp/B079C4WR32) page
 3. Click on the "Continue to Subscribe" button
+4. Do NOT continue with configuration - you will use a Cloud Formation Template to create and configure the instance itself
 
 ## Starting the Lab ##
 
@@ -55,28 +56,34 @@ Each sample test will come with instructions and explanations
 
 This lab is designed to be as turnkey as possible, with only a couple of mandatory parameters:
 
-**KeyName**: the name of the AWS keypair for auth into the devices
+**KeyName**: the name of the AWS EC2 keypair for auth into the devices
 **S3Bucket**: The S3 bucket location
 **DemoPrivateKey, DemoPublicKey**: Disposable SSH public and private keys
 **BigIpAdminPW**: The admin password for the BIG-IP
 
 There are also two others you should set for restricting access
 
-**SrcIp**:  Source IP address range for SSH 
-**PubScrIP**:  Source IP for App access
+**SrcIp**:  Source IP address range for SSH. If you're primarily going to be doing this at work, use the IP address range for your work environment. 
+**PubScrIP**:  Source IP for App access. Same as the above.
 
-These deplyoments default to open access, so tying them down with a network range might be smart. 
+These deployments default to open access, so tying them down with a network range is strongly recommended. 
 
 ### Steps
 
 1) Create an S3 bucket - and give it public access attributes 
-2) Upload the templates from the templates directory into the bucket
-3) Create a disposable ssh key pair and  save the private key sd id_rsa, and the public key as key.pub (this is very bad practice for a production system, but just about OK for this demo)
-4) Launch the Lab - use tool of your choice - this lab was developed using Windows PowerShell for AWS - but you can use the any method you like. An example Script to launch the lab form powershell is supplied.
-5) Go and make a cup of tea. The setup scripts on the BIG-IP take a bit of time to run.
+2) Upload the templates from the CFT (short for Cloud Formation Template) directory into the bucket
+3) Create a disposable SSH key pair such as [ssh-keygen](https://www.ssh.com/ssh/keygen) and save the private key my-key-pair, and the public key as my-key-pair.pub (this is very bad practice for a production system, but OK for this demo). Upload the keys into the S3 bucket. See below for a code sample.
+4) Launch the Lab - There are two methods to launch this lab:
+   - Windows PowerShell for AWS - refer to the PowerShell directory for these scripts, paying careful attention to the required input parameters. 
+   - CloudFormation Template - it's just as easy to logon to the AWS Management Console, navigate to the CloudFormation section and create your own stack from the single lab.yaml file. It will also the require parameters discussed above. 
+5) Give it time. The setup scripts on the BIG-IP take a bit of time to run. Even after the instances are running, give them 10 mins to settle down before proceeding with the setup scripts.
 6) Get the access details - the parent template outputs the IP addresses for the Utility Server, the BIG-IP and the App server.
-7) Login to the util server and complete a couple of post setup tasks 
-8) Explore the labs
+7) After waiting 10 mins post instance start, SSH to the Util server and complete a couple of post setup tasks. See below for details.
+8) Explore the labs. See below for details.
+
+  .. code::
+     ssh-keygen -P "" -t rsa -b 4096 -m pem -f my-key-pair
+
 
 Template outputs 
 
@@ -91,7 +98,7 @@ BIGIPUrl  | The URL to access the management console of the BIG-IP (use after yo
 
 provision the software modules on the BIG-IP
 
-`sh ./home/ubuntu/setup.sh`
+`sh /home/ubuntu/F5AppSvcDemo/setup.sh`
 
 ## Exploring the Lab
 
@@ -115,7 +122,7 @@ If you come across a bug or other issue when using this lab use [GitHub Issues](
 
 This software is supplied under the MIT license, strictly for testing purposes, and with absolutely no warranty whatsoever. 
 
-Please see the LICESNSE.txt file for details. 
+Please see the LICENSE.txt file for details. 
 
 ## Copyright
 
