@@ -1051,7 +1051,7 @@ Resources:
                   - |
                     echo "modifying password"
                   - |
-                    tmsh modify auth user admin password $passwd
+                    tmsh modify auth user admin password "cowpigdog"
                   - |
                     tmsh save sys config
                   - |
