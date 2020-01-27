@@ -829,7 +829,7 @@ Resources:
             010-install-libs:
               command: !Join 
                 - ' '
-                  - nohup /config/installCloudLibs.sh
+                - - nohup /config/installCloudLibs.sh
                   - '&>> /var/log/cloud/aws/install.log < /dev/null &'
             020-generate-password:
               command: !Join 
