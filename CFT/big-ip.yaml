@@ -824,7 +824,7 @@ Resources:
           commands:
             000-disable-1nicautoconfig:
               command: /usr/bin/setdb provision.1nicautoconfig disable
-            050-mkdir:
+            005-mkdir:
               command: mkdir -p /var/log/cloud/aws
             010-install-libs:
               command: !Join 
