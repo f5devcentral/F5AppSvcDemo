@@ -1,12 +1,19 @@
-# A Simple F5 Application Services Demo Environment in AWS
+# F5 Application Services Demo Environment in AWS
 
 
 ## Introduction
 
-This is a new cloud-based demo environment that will set up a VPC within AWS (more clouds to follow) containing an Ubuntu Linux client instance (the Utility Server), an F5 BIG-IP instance, and an Ubuntu Linux server App Server instance. 
+The goal of the F5 demo environment is to highlight a few examples of the solutions available in F5 Application Services. At present it shows the how you can easily support:
 
-![alt text](https://github.com/RuncibleSpoon/F5AppSvcDemo/raw/master/images/lab.png "lab layout" )
+1) [Load balancing](https://www.f5.com/products/big-ip-services/local-traffic-manager) across a blue/green test scenario
+2) Some of the capabilities available in the [Advanced Web Application Firewall (AdvWAF)](https://www.f5.com/products/security/advanced-waf)
 
+At it's core, the demo is deployed on an AWS demo environment that will set up a VPC containing an Ubuntu Linux client instance (the Utility Server), an F5 BIG-IP instance, and an Ubuntu Linux server App Server instance. The demo will be available on more clouds soon, however F5's Application Services are already available on Azure and GCP. 
+
+![alt text](https://github.com/F5devcentral/F5AppSvcDemo/raw/master/images/lab.png "lab layout" )
+
+
+## Technical Overview
 The deployment is done using [AWS Cloudformation](https://aws.amazon.com/cloudformation/) using the supplied CloudFormation template. 
 
 The client and server instances run [Docker](https://www.docker.com/) Community Edition and come laded with some tools and test scenarios to enable you to try out various application services like Web Application Firewalls.  
@@ -111,7 +118,7 @@ Enter the password for each step of the setup script
 
 ### Current Back ends 
 
-There are two running containers on the application server
+There are two running containers on the application server:
 
 * A Simple NGINX web server on port 80
 * The [OWASP Juicebox App](https://www.owasp.org/index.php/OWASP_Juice_Shop_Project) on port 3000
