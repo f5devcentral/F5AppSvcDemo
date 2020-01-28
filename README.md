@@ -21,20 +21,20 @@ This repository is cloned onto the client as part of the CloudFormation deployme
 
 You will need: 
 
-1) An AWS account and the knowledge to operate it 
+1) An AWS account with the ability to create CloudFormation templates, S3 buckets, EC2 instances, and IAM roles
 2) An AWS S3 bucket to put the templates and files 
-3) Have subscribed in the AWS Marketplace to the F5 BIG-IP instance used in this lab
-4) A pre-generated public and private key pair for server to server communication
-5) An EC2 created key for SSH from your client to the Util Server
+3) Have subscribed in the AWS Marketplace to the F5 BIG-IP instance used in this lab (see below)
+4) A pre-generated public and private key pair for server to server communication (see below)
+5) An EC2 key pair for SSH from your client to the Util Server 
 
 
 ## Some important notes 
 
 There are a couple of important things to know:
 
-1) ***This lab is not built to best practices for production security***. In particular you are asked to supply a key pair for use in the demo - this should be disposable (you will still need to specify a standard EC2 AWS key pair for remote access )
+1) ***This lab is not built to best practices for production security***. In particular you are asked to supply a key pair for use in the demo - this should be disposable (you will still need to specify an EC2 AWS key pair for remote access )
 
-2) This lab is only  available in US-WEST, EU-WEST-1, and AP-NORTHEAST-1 in this version.
+2) This lab is only  available in US-WEST-1, EU-WEST-1, and AP-NORTHEAST-1 in this version.
 
 
 # Documentation #
