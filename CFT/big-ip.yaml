@@ -718,7 +718,7 @@ Parameters:
       - PerAppVeLtm25Mbps
       - PerAppVeLtm200Mbps
     ConstraintDescription: Must be a valid F5 BIG-IP VE image type
-    Default: Best1000Mbps
+    Default: Best25Mbps
     Description: F5 BIG-IP Performance Type
     Type: String
   instanceType:
@@ -753,7 +753,7 @@ Parameters:
       - c5n.2xlarge
       - c5n.4xlarge
     ConstraintDescription: Must be a valid EC2 instance type for BIG-IP
-    Default: m5.xlarge
+    Default: m5.large
     Description: Size of the F5 BIG-IP Virtual Instance
     Type: String
   managementGuiPort:
@@ -824,11 +824,12 @@ Resources:
           commands:
             000-disable-1nicautoconfig:
               command: /usr/bin/setdb provision.1nicautoconfig disable
+            005-mkdir:
+              command: mkdir -p /var/log/cloud/aws
             010-install-libs:
               command: !Join 
                 - ' '
-                - - mkdir -p /var/log/cloud/aws;
-                  - nohup /config/installCloudLibs.sh
+                - - nohup /config/installCloudLibs.sh
                   - '&>> /var/log/cloud/aws/install.log < /dev/null &'
             020-generate-password:
               command: !Join 
@@ -897,7 +898,7 @@ Resources:
                       /config/cloud/aws/node_modules/@f5devcentral/f5-cloud-libs/scripts/onboard.js
                     - >-
                       --install-ilx-package
-                      file:///config/cloud/f5-appsvcs-3.13.1-1.noarch.rpm
+                      file:///config/cloud/f5-appsvcs-3.13.2-1.noarch.rpm
                     - '--port 8443'
                     - '--ssl-port '
                     - !Ref managementGuiPort
@@ -1239,12 +1240,12 @@ Resources:
               owner: root
               source: >-
                 http://cdn.f5.com/product/cloudsolutions/f5-appsvcs-extension/v3.6.0/dist/lts/f5-appsvcs-3.5.1-5.noarch.rpm
-            /config/cloud/f5-appsvcs-3.13.1-1.noarch.rpm:
+            /config/cloud/f5-appsvcs-3.13.2-1.noarch.rpm:
               group: root
               mode: '000755'
               owner: root
               source: >-
-                https://github.com/F5Networks/f5-appsvcs-extension/raw/master/dist/lts/3.13.1/f5-appsvcs-3.13.1-1.noarch.rpm
+                https://github.com/F5Networks/f5-appsvcs-extension/releases/download/v3.13.2/f5-appsvcs-3.13.2-1.noarch.rpm
             /config/cloud/f5-cloud-libs-aws.tar.gz:
               group: root
               mode: '000755'
