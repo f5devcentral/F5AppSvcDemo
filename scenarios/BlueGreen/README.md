@@ -7,9 +7,9 @@
 
 In this instance we have a very simple app that displays a soothing green page, and an exciting update that offers a pleasing blue.
 
-![alt text](https://github.com/RuncibleSpoon/F5AppSvcDemo/raw/master/images/blue.PNG "Blue App")
+![alt text](https://github.com/F5DevCentral/F5AppSvcDemo/raw/master/images/blue.PNG "Blue App")
 
-![alt text](https://github.com/RuncibleSpoon/F5AppSvcDemo/raw/master/images/green.PNG "Green App")
+![alt text](https://github.com/F5DevCentral/F5AppSvcDemo/raw/master/images/green.PNG "Green App")
 
 Once the container(s) for the new version are up and running, how do we direct traffic over to the new updated visual experience? 
 
@@ -49,19 +49,19 @@ You're probably going to get a green screen, but you never know. Since this coul
 `./scenarios/BlueGreen/counter.sh `
 
 
-![alt text](https://github.com/RuncibleSpoon/F5AppSvcDemo/raw/master/images/B10G90.PNG  "Counter script results")
+![alt text](https://github.com/F5DevCentral/F5AppSvcDemo/raw/master/images/B10G90.PNG  "Counter script results")
 
 If we are happy with that, we can move to 50:50 ratio
 
 `ubuntu@util:~/F5AppSvcDemo$ python as3.py blue50green50.json`
 
-![alt text](https://github.com/RuncibleSpoon/F5AppSvcDemo/raw/master/images/50B50G.PNG  "Counter script results")
+![alt text](https://github.com/F5DevCentral/F5AppSvcDemo/raw/master/images/50B50G.PNG  "Counter script results")
 
 And then maybe a 90:10
 
 `ubuntu@util:~/F5AppSvcDemo$ python as3.py blue90green10.json`
 
-![alt text](https://github.com/RuncibleSpoon/F5AppSvcDemo/raw/master/images/B90G10.PNG  "Counter script results")
+![alt text](https://github.com/F5DevCentral/F5AppSvcDemo/raw/master/images/B90G10.PNG  "Counter script results")
 
 ## Enhancing things with a rule to control who sees the new app
 
@@ -107,7 +107,7 @@ And attach it to your AS3 declaration as an external stored file
 "external_green_only": {
                     "class": "iRule",
                     "iRule": {
-                    "url": "https://raw.githubusercontent.com/RuncibleSpoon/F5AppSvcDemo/master/scenarios/BlueGreen/irule.tcl"
+                    "url": "https://raw.githubusercontent.com/F5DevCentral/F5AppSvcDemo/master/scenarios/BlueGreen/irule.tcl"
                     }  
 ...
 ```                    
@@ -115,11 +115,11 @@ And attach it to your AS3 declaration as an external stored file
 `~/F5AppSvcDemo$ python as3.py  blue10green90_external.json`
 
 
-![alt text](https://github.com/RuncibleSpoon/F5AppSvcDemo/raw/master/images/b10_external.PNG  "Counter script results")
+![alt text](https://github.com/F5DevCentral/F5AppSvcDemo/raw/master/images/b10_external.PNG  "Counter script results")
 
 Which is as  you'd expect, but if you go the external app address you will ***always*** get the green app.
 
-![alt text](https://github.com/RuncibleSpoon/F5AppSvcDemo/raw/master/images/allgreen.png  "External app")
+![alt text](https://github.com/F5DevCentral/F5AppSvcDemo/raw/master/images/allgreen.png  "External app")
 
 
 In addition we are logging the connections in this rule:
@@ -155,7 +155,7 @@ ubuntu@util:~/F5AppSvcDemo$`
 
 And run our counter test:
 
-![alt text](https://github.com/RuncibleSpoon/F5AppSvcDemo/raw/master/images/monitor.PNG  "with monitor")
+![alt text](https://github.com/F5DevCentral/F5AppSvcDemo/raw/master/images/monitor.PNG  "with monitor")
 
 Because the BIG-IP pro-actively monitors the app, traffic is only sent to the working version 
 
@@ -164,7 +164,7 @@ Let's fix the app and repeat:
 `ubuntu@util:~/F5AppSvcDemo$ ssh appserver docker unpause blue_server
 blue_server`
 
-![alt text](https://github.com/RuncibleSpoon/F5AppSvcDemo/raw/master/images/resume.PNG  "resumed")
+![alt text](https://github.com/F5DevCentral/F5AppSvcDemo/raw/master/images/resume.PNG  "resumed")
 
 You can see that once the blue app was market up, traffic resumed - there is also a 'slow start' grace period so that new instances don't get slammed straight away. 
 

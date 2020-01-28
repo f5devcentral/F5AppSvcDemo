@@ -333,7 +333,7 @@ Resources:
 
   
 
-  # Util Server Secuirty Group
+  # Util Server Security Group
   UsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -354,7 +354,7 @@ Resources:
         CidrIp: !Ref SrcIp
       VpcId: !Ref VPC  
 
-   # Web  Server Secuirty Group
+   # Web  Server Security Group
   WsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
